@@ -298,7 +298,7 @@ function BuilderTool() {
         {[{ n: TOTAL_BURGER.toLocaleString(), l: "Burger Combos" }, { n: TOTAL_FRIES, l: "Fry Combos" }, { n: TOTAL_DRINKS, l: "Drink Combos" }, { n: TOTAL.toLocaleString(), l: "Total Possible" }].map((s, i) => (
           <div key={i} style={{ textAlign: "center", flex: 1 }}>
             <span style={{ fontSize: "15px", fontWeight: "900", color: RED, display: "block" }}>{s.n}</span>
-            <span style={{ fontSize: "8px", letterSpacing: "1px", textTransform: "uppercase", opacity: 0.6, display: "block", marginTop: "2px" }}>{s.l}</span>
+            <span style={{ fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase", color: WHITE, opacity: 0.7, display: "block", marginTop: "4px" }}>{s.l}</span>
           </div>
         ))}
       </div>
