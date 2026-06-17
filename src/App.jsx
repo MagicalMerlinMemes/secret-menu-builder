@@ -1,5 +1,10 @@
 import { useState, useMemo } from "react";
 
+// ─── ADS TOGGLE ──────────────────────────────────────────────────────────────
+// Flip this to true once your AdSense account is approved and you've swapped
+// the AdSlot placeholders below for real AdSense ad units.
+const ADS_ENABLED = false;
+
 // ─── COLORS & TOKENS ─────────────────────────────────────────────────────────
 const RED = "#DA2127";
 const CREAM = "#FFF8F0";
@@ -166,12 +171,15 @@ function buildScript(state) {
 }
 
 // ─── TINY UI PARTS ───────────────────────────────────────────────────────────
-const AdSlot = ({ label, height = 90, sidebar = false }) => (
-  <div style={{ background: AD_BG, border: "1px dashed #CCC", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", height: sidebar ? "600px" : `${height}px`, width: "100%", flexDirection: "column", gap: "4px", margin: sidebar ? "0" : "16px 0" }}>
-    <span style={{ fontSize: "10px", color: "#AAA", letterSpacing: "1px", textTransform: "uppercase" }}>Advertisement</span>
-    <span style={{ fontSize: "9px", color: "#CCC" }}>{label}</span>
-  </div>
-);
+const AdSlot = ({ label, height = 90, sidebar = false }) => {
+  if (!ADS_ENABLED) return null;
+  return (
+    <div className={sidebar ? "ad-sidebar" : undefined} style={{ background: AD_BG, border: "1px dashed #CCC", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", height: sidebar ? "600px" : `${height}px`, width: "100%", flexDirection: "column", gap: "4px", margin: sidebar ? "0" : "16px 0" }}>
+      <span style={{ fontSize: "10px", color: "#AAA", letterSpacing: "1px", textTransform: "uppercase" }}>Advertisement</span>
+      <span style={{ fontSize: "9px", color: "#CCC" }}>{label}</span>
+    </div>
+  );
+};
 
 const RadioGrid = ({ options, value, onChange, cols = 2 }) => (
   <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: "6px" }}>
@@ -413,9 +421,11 @@ function HomePage() {
         </div>
 
         {/* Sidebar */}
-        <div style={{ width: "160px", flexShrink: 0 }}>
-          <AdSlot label="160x600 Wide Skyscraper — place AdSense unit here" height={600} sidebar />
-        </div>
+        {ADS_ENABLED && (
+          <div className="ad-sidebar-col" style={{ width: "160px", flexShrink: 0 }}>
+            <AdSlot label="160x600 Wide Skyscraper — place AdSense unit here" height={600} sidebar />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -533,9 +543,11 @@ function BlogPostPage({ postId, onBack }) {
           </div>
           <AdSlot label="728x90 — place AdSense unit here" height={90} />
         </div>
-        <div style={{ width: "160px", flexShrink: 0 }}>
-          <AdSlot label="160x600 Sidebar — place AdSense unit here" height={600} sidebar />
-        </div>
+        {ADS_ENABLED && (
+          <div className="ad-sidebar-col" style={{ width: "160px", flexShrink: 0 }}>
+            <AdSlot label="160x600 Sidebar — place AdSense unit here" height={600} sidebar />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -598,6 +610,11 @@ export default function App() {
 
   return (
     <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", background: CREAM, minHeight: "100vh", color: DARK }}>
+      <style>{`
+        @media (max-width: 700px) {
+          .ad-sidebar-col { display: none !important; }
+        }
+      `}</style>
       {/* NAV */}
       <nav style={{ background: RED, position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
         <div style={{ maxWidth: "860px", margin: "0 auto", padding: "0 16px", height: NAV_HEIGHT, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
