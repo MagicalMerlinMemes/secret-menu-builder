@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160">
+  <style>
+    .bg { fill: #DA2127; }
+    .fg { fill: white; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #1A1A1A; }
+      .fg { fill: #DA2127; }
+    }
+  </style>
+  <rect class="bg" width="160" height="160" rx="32"/>
+  <path class="fg" d="M28 58 Q28 26 80 26 Q132 26 132 58 Z"/>
+  <circle class="bg" cx="55" cy="42" r="3"/>
+  <circle class="bg" cx="80" cy="36" r="3"/>
+  <circle class="bg" cx="105" cy="42" r="3"/>
+  <rect class="fg" x="26" y="62" width="108" height="14" rx="7"/>
+  <rect class="fg" x="26" y="80" width="108" height="14" rx="2" opacity="0.9"/>
+  <path class="fg" d="M30 100 L130 100 L130 108 Q130 126 80 126 Q30 126 30 108 Z"/>
+</svg>
