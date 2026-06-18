@@ -311,6 +311,15 @@ function BuilderTool() {
         ))}
       </div>
 
+      {/* Mobile app CTA */}
+      <a href="https://secretmenubuilder.app" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: DARK, borderRadius: "8px", padding: "12px 16px", marginBottom: "10px", textDecoration: "none" }}>
+        <div>
+          <div style={{ fontSize: "13px", fontWeight: "800", color: WHITE }}>📱 Better on mobile?</div>
+          <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.55)", marginTop: "2px" }}>Use the app — no ads, full screen, drive-thru ready</div>
+        </div>
+        <div style={{ color: RED, fontWeight: "800", fontSize: "18px" }}>→</div>
+      </a>
+
       {/* Legend */}
       <div style={{ background: "#FFF8E8", border: `1px solid ${YELLOW}`, borderRadius: "6px", padding: "8px 12px", marginBottom: "16px", fontSize: "11px", color: "#8B6914", display: "flex", gap: "6px", alignItems: "center" }}>
         <span style={{ color: YELLOW }}>★</span> = Secret menu item — not on the board, but totally orderable
