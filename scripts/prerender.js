@@ -14,10 +14,10 @@ const root = path.resolve(__dirname, "..");
 const distDir = path.join(root, "dist");
 const ssrEntry = path.join(root, "dist-ssr", "entry-server.js");
 
-// Matches the domain already used in public/sitemap.xml. If you set the
-// www subdomain as canonical in Vercel instead, update this and
-// public/sitemap.xml and robots.txt to match.
-const SITE_URL = "https://secretmenubuilder.com";
+// Must match the domain your site is actually served from, since sitemap
+// URLs have to live on the same host as the sitemap file itself, or Google
+// rejects the sitemap. Confirmed live host: www.secretmenubuilder.com
+const SITE_URL = "https://www.secretmenubuilder.com";
 
 // One entry per real URL on the site. Keep this in sync with public/sitemap.xml.
 const routes = [
@@ -100,7 +100,7 @@ async function main() {
     );
 
     // Add canonical link right after description if not already present
-    const canonicalTag = `<link rel="canonical" href="${SITE_URL}${route.url === "/" ? "" : route.url}" />`;
+    const canonicalTag = `<link rel="canonical" href="${SITE_URL}${route.url === "/" ? "/" : route.url}" />`;
     if (!html.includes('rel="canonical"')) {
       html = html.replace(
         /<meta name="description" content=".*?" \/>/s,
