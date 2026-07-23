@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Routes, Route, Link, useNavigate, useParams } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 
 // ─── ADS TOGGLE ──────────────────────────────────────────────────────────────
 // Flip this to true once your AdSense account is approved and you've swapped
@@ -247,7 +248,7 @@ const SectionHead = ({ emoji, children }) => (
   </div>
 );
 
-// ─── SHARE ───────────────────────────────────────────────────────────────────
+// ─── SHARE ───────────────────────────────────────────���───────────────────────
 function ShareButtons({ orderText }) {
   const [copied, setCopied] = useState(false);
   const url = typeof window !== "undefined" ? window.location.href : "https://yourdomain.com";
@@ -699,14 +700,17 @@ function AppShell({ activeId, children }) {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<AppShell activeId="home"><HomePage /></AppShell>} />
-      <Route path="/blog" element={<AppShell activeId="blog"><BlogListPage /></AppShell>} />
-      <Route path="/blog/:slug" element={<AppShell activeId="blog"><BlogPostPage /></AppShell>} />
-      <Route path="/about" element={<AppShell activeId="about"><AboutPage /></AppShell>} />
-      <Route path="/privacy" element={<AppShell activeId="privacy"><PrivacyPage /></AppShell>} />
-      <Route path="*" element={<AppShell activeId=""><NotFoundPage /></AppShell>} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<AppShell activeId="home"><HomePage /></AppShell>} />
+        <Route path="/blog" element={<AppShell activeId="blog"><BlogListPage /></AppShell>} />
+        <Route path="/blog/:slug" element={<AppShell activeId="blog"><BlogPostPage /></AppShell>} />
+        <Route path="/about" element={<AppShell activeId="about"><AboutPage /></AppShell>} />
+        <Route path="/privacy" element={<AppShell activeId="privacy"><PrivacyPage /></AppShell>} />
+        <Route path="*" element={<AppShell activeId=""><NotFoundPage /></AppShell>} />
+      </Routes>
+      <Analytics />
+    </>
   );
 }
 
