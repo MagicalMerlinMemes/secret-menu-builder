@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Routes, Route, Link, useNavigate, useParams } from "react-router-dom";
 
 // ─── ADS TOGGLE ──────────────────────────────────────────────────────────────
 // Flip this to true once your AdSense account is approved and you've swapped
@@ -452,7 +453,7 @@ function HomePage() {
   );
 }
 
-function BlogListPage({ onPost }) {
+function BlogListPage() {
   const posts = [
     { id: 1, slug: "animal-style-explained", title: "Animal Style, Explained: What's Actually in It and How to Order It Right", date: "June 2026", excerpt: "It's the most famous secret menu item in fast food. Here's exactly what goes into it, why mustard-grilled patties taste different, and the best way to ask for it without slowing down the line.", readTime: "4 min read" },
     { id: 2, slug: "flying-dutchman-guide", title: "The Flying Dutchman: The Ultimate Low-Carb Order Hidden in Plain Sight", date: "June 2026", excerpt: "Two patties. Two slices of cheese. No bun, no lettuce, no tomato. The Flying Dutchman is the simplest and most misunderstood item on the hidden menu.", readTime: "3 min read" },
@@ -467,12 +468,12 @@ function BlogListPage({ onPost }) {
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {posts.map(p => (
-          <div key={p.id} onClick={() => onPost(p.id)} style={{ background: WHITE, borderRadius: "10px", padding: "20px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", cursor: "pointer", borderLeft: `4px solid ${RED}` }}>
+          <Link key={p.id} to={`/blog/${p.slug}`} style={{ textDecoration: "none", display: "block", background: WHITE, borderRadius: "10px", padding: "20px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", cursor: "pointer", borderLeft: `4px solid ${RED}` }}>
             <div style={{ fontSize: "10px", color: GRAY, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "6px" }}>{p.date} · {p.readTime}</div>
             <h2 style={{ fontSize: "17px", fontWeight: "800", color: DARK, margin: "0 0 8px", lineHeight: "1.3" }}>{p.title}</h2>
             <p style={{ fontSize: "13px", color: GRAY, lineHeight: "1.6", margin: "0 0 10px" }}>{p.excerpt}</p>
             <span style={{ fontSize: "12px", fontWeight: "700", color: RED }}>Read more →</span>
-          </div>
+          </Link>
         ))}
       </div>
       <AdSlot label="728x90 — place AdSense unit here" height={90} />
@@ -480,9 +481,12 @@ function BlogListPage({ onPost }) {
   );
 }
 
-function BlogPostPage({ postId, onBack }) {
+function BlogPostPage() {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  const onBack = () => navigate("/blog");
   const content = {
-    1: {
+    "animal-style-explained": {
       title: "Animal Style, Explained: What's Actually in It and How to Order It Right",
       date: "June 2026", readTime: "4 min read",
       body: [
@@ -500,7 +504,7 @@ function BlogPostPage({ postId, onBack }) {
         { p: "Yes. The builder at the top of this site lets you start with Animal Style logic and add to it. You can layer in extra tomato, whole grilled onion, medium rare, or any of the other off-menu modifications. The order script will tell you exactly how to phrase it at the window." },
       ]
     },
-    2: {
+    "flying-dutchman-guide": {
       title: "The Flying Dutchman: The Ultimate Low-Carb Order Hidden in Plain Sight",
       date: "June 2026", readTime: "3 min read",
       body: [
@@ -516,7 +520,7 @@ function BlogPostPage({ postId, onBack }) {
         { p: "Say 'Flying Dutchman' by name — most locations know it. If you want to add toppings, name them after. If you want the tomato or onion wrap variation, describe it clearly: 'Flying Dutchman with tomato slices as the bun' or 'wrapped in whole grilled onion.'" },
       ]
     },
-    3: {
+    "secret-drinks-guide": {
       title: "Every Secret Drink You Can Order: Floats, Neapolitan Shakes, Arnold Palmers and More",
       date: "June 2026", readTime: "5 min read",
       body: [
@@ -538,13 +542,21 @@ function BlogPostPage({ postId, onBack }) {
     }
   };
 
-  const post = content[postId];
-  if (!post) return null;
+  const post = content[slug];
+  if (!post) {
+    return (
+      <div style={{ background: WHITE, borderRadius: "10px", padding: "28px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", textAlign: "center" }}>
+        <h1 style={{ fontSize: "20px", fontWeight: "800", color: DARK, margin: "0 0 10px" }}>Post not found</h1>
+        <p style={{ fontSize: "14px", color: GRAY, margin: "0 0 16px" }}>That article doesn't exist or may have moved.</p>
+        <Link to="/blog" style={{ fontSize: "13px", fontWeight: "700", color: RED }}>← Back to Blog</Link>
+      </div>
+    );
+  }
 
   return (
     <div>
       <AdSlot label="728x90 Leaderboard — place AdSense unit here" height={90} />
-      <button onClick={onBack} style={{ background: "none", border: "none", color: RED, fontWeight: "700", fontSize: "13px", cursor: "pointer", padding: "0 0 12px", display: "flex", alignItems: "center", gap: "4px" }}>← Back to Blog</button>
+      <Link to="/blog" style={{ background: "none", border: "none", color: RED, fontWeight: "700", fontSize: "13px", cursor: "pointer", padding: "0 0 12px", display: "flex", alignItems: "center", gap: "4px", textDecoration: "none" }}>← Back to Blog</Link>
       <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ background: WHITE, borderRadius: "10px", padding: "24px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
@@ -613,22 +625,38 @@ function PrivacyPage() {
 }
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
-export default function App() {
-  const [page, setPage] = useState("home");
-  const [blogPost, setBlogPost] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false);
+const navItems = [
+  { id: "home", to: "/", label: "Builder" },
+  { id: "blog", to: "/blog", label: "Blog" },
+  { id: "about", to: "/about", label: "About" },
+  { id: "privacy", to: "/privacy", label: "Privacy" },
+];
 
-  const navTo = (p) => { setPage(p); setBlogPost(null); setMenuOpen(false); };
-  const goPost = (id) => { setBlogPost(id); setPage("blogpost"); };
-  const goBackBlog = () => { setPage("home"); setBlogPost(null); };
+function ActiveNavLink({ item, activeId, onClick, style }) {
+  const isActive = activeId === item.id;
+  return (
+    <Link
+      to={item.to}
+      onClick={onClick}
+      style={{
+        background: isActive ? "rgba(255,255,255,0.2)" : "none",
+        border: "none",
+        color: WHITE,
+        fontWeight: isActive ? "700" : "400",
+        fontSize: "13px",
+        padding: "6px 12px",
+        borderRadius: "6px",
+        cursor: "pointer",
+        textDecoration: "none",
+        ...style,
+      }}
+    >
+      {item.label}
+    </Link>
+  );
+}
 
-  const navItems = [
-    { id: "home", label: "Builder" },
-    { id: "blog", label: "Blog" },
-    { id: "about", label: "About" },
-    { id: "privacy", label: "Privacy" },
-  ];
-
+function AppShell({ activeId, children }) {
   return (
     <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", background: CREAM, minHeight: "100vh", color: DARK }}>
       <style>{`
@@ -639,13 +667,13 @@ export default function App() {
       {/* NAV */}
       <nav style={{ background: RED, position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
         <div style={{ maxWidth: "860px", margin: "0 auto", padding: "0 16px", height: NAV_HEIGHT, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div onClick={() => navTo("home")} style={{ cursor: "pointer" }}>
+          <Link to="/" style={{ cursor: "pointer", textDecoration: "none" }}>
             <span style={{ fontWeight: "900", fontSize: "16px", color: WHITE, textTransform: "uppercase", letterSpacing: "0.5px" }}>Secret Menu Builder</span>
-          </div>
+          </Link>
           {/* Desktop nav */}
           <div style={{ display: "flex", gap: "4px" }}>
             {navItems.map(n => (
-              <button key={n.id} onClick={() => navTo(n.id)} style={{ background: page === n.id ? "rgba(255,255,255,0.2)" : "none", border: "none", color: WHITE, fontWeight: page === n.id ? "700" : "400", fontSize: "13px", padding: "6px 12px", borderRadius: "6px", cursor: "pointer" }}>{n.label}</button>
+              <ActiveNavLink key={n.id} item={n} activeId={activeId} />
             ))}
           </div>
         </div>
@@ -653,22 +681,41 @@ export default function App() {
 
       {/* CONTENT */}
       <div style={{ maxWidth: "860px", margin: "0 auto", padding: "20px 16px 60px" }}>
-        {page === "home" && <HomePage />}
-        {page === "blog" && <BlogListPage onPost={goPost} />}
-        {page === "blogpost" && <BlogPostPage postId={blogPost} onBack={goBackBlog} />}
-        {page === "about" && <AboutPage />}
-        {page === "privacy" && <PrivacyPage />}
+        {children}
       </div>
 
       {/* FOOTER */}
       <footer style={{ background: DARK, color: "rgba(255,255,255,0.5)", padding: "20px 16px", textAlign: "center", fontSize: "12px" }}>
         <div style={{ maxWidth: "860px", margin: "0 auto" }}>
           <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "10px", flexWrap: "wrap" }}>
-            {navItems.map(n => <span key={n.id} onClick={() => navTo(n.id)} style={{ cursor: "pointer", color: "rgba(255,255,255,0.6)" }}>{n.label}</span>)}
+            {navItems.map(n => <Link key={n.id} to={n.to} style={{ cursor: "pointer", color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>{n.label}</Link>)}
           </div>
           <p style={{ margin: 0 }}>Independent fan site. Not affiliated with any restaurant chain. Menu availability may vary by location.</p>
         </div>
       </footer>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<AppShell activeId="home"><HomePage /></AppShell>} />
+      <Route path="/blog" element={<AppShell activeId="blog"><BlogListPage /></AppShell>} />
+      <Route path="/blog/:slug" element={<AppShell activeId="blog"><BlogPostPage /></AppShell>} />
+      <Route path="/about" element={<AppShell activeId="about"><AboutPage /></AppShell>} />
+      <Route path="/privacy" element={<AppShell activeId="privacy"><PrivacyPage /></AppShell>} />
+      <Route path="*" element={<AppShell activeId=""><NotFoundPage /></AppShell>} />
+    </Routes>
+  );
+}
+
+function NotFoundPage() {
+  return (
+    <div style={{ background: WHITE, borderRadius: "10px", padding: "28px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", textAlign: "center" }}>
+      <h1 style={{ fontSize: "20px", fontWeight: "800", color: DARK, margin: "0 0 10px" }}>Page not found</h1>
+      <p style={{ fontSize: "14px", color: GRAY, margin: "0 0 16px" }}>That page doesn't exist.</p>
+      <Link to="/" style={{ fontSize: "13px", fontWeight: "700", color: RED }}>← Back to the Builder</Link>
     </div>
   );
 }
