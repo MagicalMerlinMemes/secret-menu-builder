@@ -3,8 +3,6 @@ import { Routes, Route, Link, useNavigate, useParams } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 
 // ─── ADS TOGGLE ──────────────────────────────────────────────────────────────
-// Flip this to true once your AdSense account is approved and you've swapped
-// the AdSlot placeholders below for real AdSense ad units.
 const ADS_ENABLED = false;
 
 // ─── COLORS & TOKENS ─────────────────────────────────────────────────────────
@@ -77,24 +75,46 @@ const FRIES_TOPPINGS = [
   { id: "lemon_pepper_fries", label: "+ Lemon Pepper", order: "with lemon pepper" },
   { id: "chilies_fries", label: "+ Chopped Chilies", order: "with chopped chilies" },
 ];
+
+// CHANGE 4: "Soda / Lemonade / Tea" label
 const DRINK_TYPE = [
-  { id: "soda", label: "Soda / Lemonade" },
+  { id: "soda", label: "Soda / Lemonade / Tea" },
   { id: "shake", label: "Milkshake" },
   { id: "float", label: "Float ★", secret: true },
   { id: "secret_mix", label: "Secret Mix ★", secret: true },
   { id: "no_drink", label: "No Drink" },
 ];
+
+// CHANGE 3: Arnold Palmer and Lemon-Up added to sodas
 const SODAS = [
-  { id: "coke", label: "Coca-Cola" }, { id: "diet_coke", label: "Diet Coke" },
-  { id: "dr_pepper", label: "Dr Pepper" }, { id: "7up", label: "7-Up" },
-  { id: "root_beer", label: "Root Beer" }, { id: "pink_lemonade", label: "Pink Lemonade" },
-  { id: "iced_tea", label: "Iced Tea" }, { id: "water", label: "Water" },
+  { id: "coke", label: "Coca-Cola" },
+  { id: "diet_coke", label: "Diet Coke" },
+  { id: "dr_pepper", label: "Dr Pepper" },
+  { id: "7up", label: "7-Up" },
+  { id: "root_beer", label: "Root Beer" },
+  { id: "pink_lemonade", label: "Pink Lemonade" },
+  { id: "iced_tea", label: "Iced Tea" },
+  { id: "water", label: "Water" },
+  { id: "arnold_palmer_soda", label: "Arnold Palmer ★", secret: true, order: "Arnold Palmer — half iced tea, half pink lemonade" },
+  { id: "lemon_up_soda", label: "Lemon-Up ★", secret: true, order: "Lemon-Up — half 7-Up, half pink lemonade" },
 ];
+
+// CHANGE 2: Secret shakes added to shake flavors
 const SHAKE_FLAVORS = [
-  { id: "vanilla", label: "Vanilla" }, { id: "chocolate", label: "Chocolate" }, { id: "strawberry", label: "Strawberry" },
+  { id: "vanilla", label: "Vanilla" },
+  { id: "chocolate", label: "Chocolate" },
+  { id: "strawberry", label: "Strawberry" },
+  { id: "neapolitan", label: "Neapolitan ★", secret: true, order: "Neapolitan Shake — all three flavors blended" },
+  { id: "black_white", label: "Black & White ★", secret: true, order: "Black & White Shake — chocolate and vanilla" },
+  { id: "choc_straw", label: "Choc-Strawberry ★", secret: true, order: "Chocolate-Strawberry Shake" },
+  { id: "van_straw", label: "Vanilla-Strawberry ★", secret: true, order: "Vanilla-Strawberry Shake" },
+  { id: "around_world", label: "Around the World ★", secret: true, order: "Around the World — all three flavors layered" },
 ];
+
 const SHAKE_SIZE = [
-  { id: "regular", label: "Regular" }, { id: "large", label: "Large ★", secret: true }, { id: "xlarge", label: "X-Large ★", secret: true },
+  { id: "regular", label: "Regular" },
+  { id: "large", label: "Large ★", secret: true },
+  { id: "xlarge", label: "X-Large ★", secret: true },
 ];
 const FLOAT_OPTIONS = [
   { id: "root_beer_float", label: "Root Beer Float", order: "Root Beer Float — half root beer, half vanilla shake" },
@@ -115,7 +135,7 @@ const SECRET_MIXES = [
 
 const TOTAL_BURGER = 4 * 5 * 7 * 5 * Math.pow(2, 10);
 const TOTAL_FRIES = 4 * 8;
-const TOTAL_DRINKS = 8 + 9 + 5 + 7 + 1;
+const TOTAL_DRINKS = 10 + 8 + 5 + 7 + 1;
 const TOTAL = TOTAL_BURGER * TOTAL_FRIES * TOTAL_DRINKS;
 
 const defaultToppings = TOPPINGS.reduce((a, t) => { a[t.id] = t.default; return a; }, {});
@@ -145,12 +165,25 @@ function buildScript(state) {
 
   let friesStr = fd.order + (ft.order ? ` — ${ft.order}` : "");
   let drinkStr = "";
-  if (drinkType === "soda") drinkStr = SODAS.find(x => x.id === soda)?.label;
-  else if (drinkType === "shake") {
-    const sz = SHAKE_SIZE.find(x => x.id === shakeSize);
-    drinkStr = `${sz.id !== "regular" ? sz.label.replace(" ★","") + " " : ""}${SHAKE_FLAVORS.find(x => x.id === shakeBase)?.label} milkshake`;
-  } else if (drinkType === "float") drinkStr = FLOAT_OPTIONS.find(x => x.id === floatChoice)?.order;
-  else if (drinkType === "secret_mix") drinkStr = SECRET_MIXES.find(x => x.id === secretMix)?.order;
+
+  if (drinkType === "soda") {
+    const s = SODAS.find(x => x.id === soda);
+    drinkStr = s?.order || s?.label || "";
+  } else if (drinkType === "shake") {
+    const sf = SHAKE_FLAVORS.find(x => x.id === shakeBase);
+    // Secret shake flavors have their own order string
+    if (sf?.order) {
+      const sz = SHAKE_SIZE.find(x => x.id === shakeSize);
+      drinkStr = sz?.id !== "regular" ? `${sz?.label.replace(" ★","")} ${sf.order}` : sf.order;
+    } else {
+      const sz = SHAKE_SIZE.find(x => x.id === shakeSize);
+      drinkStr = `${sz?.id !== "regular" ? sz?.label.replace(" ★","") + " " : ""}${sf?.label} milkshake`;
+    }
+  } else if (drinkType === "float") {
+    drinkStr = FLOAT_OPTIONS.find(x => x.id === floatChoice)?.order;
+  } else if (drinkType === "secret_mix") {
+    drinkStr = SECRET_MIXES.find(x => x.id === secretMix)?.order;
+  }
 
   const burgerLine = parts.join(", ");
   const lines = drinkStr && drinkType !== "no_drink"
@@ -166,8 +199,11 @@ function buildScript(state) {
   if (friesTop === "roadkill_fries") tips.push("Roadkill isn't universal — describe it as Animal Style fries with a Flying Dutchman crumbled on top.");
   if (friesTop === "ultimate_animal_fries") tips.push("Ask for Animal Style fries with a beef patty crumbled on top.");
   if (drinkType === "float") tips.push("Ask for a half cup of soda first so it doesn't overflow when they add the shake.");
+  if (drinkType === "soda" && soda === "lemon_up_soda") tips.push("Lemon-Up = half 7-Up, half pink lemonade. Say it by name or describe it.");
+  if (drinkType === "soda" && soda === "arnold_palmer_soda") tips.push("Arnold Palmer = half iced tea, half pink lemonade. Most locations know it.");
   if (drinkType === "secret_mix" && secretMix === "lemon_up") tips.push("Lemon-Up = half 7-Up, half pink lemonade. Say it by name or describe it.");
   if (drinkType === "shake" && shakeSize !== "regular") tips.push("Large and X-Large shakes are off-menu — just ask for the size by name.");
+  if (drinkType === "shake" && SHAKE_FLAVORS.find(x => x.id === shakeBase)?.secret) tips.push("This is a secret shake combo — describe it if they don't recognize the name.");
 
   return { lines, tips };
 }
@@ -251,7 +287,7 @@ const SectionHead = ({ emoji, children }) => (
 // ─── SHARE ───────────────────────────────────────────────────────────────────
 function ShareButtons({ orderText }) {
   const [copied, setCopied] = useState(false);
-  const url = typeof window !== "undefined" ? window.location.href : "https://yourdomain.com";
+  const url = typeof window !== "undefined" ? window.location.href : "https://secretmenubuilder.com";
   const msg = encodeURIComponent(`My secret order: ${orderText} — build yours at ${url}`);
   const copyLink = () => { navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); };
   const platforms = [
@@ -306,17 +342,28 @@ function BuilderTool() {
   const [shakeSize, setShakeSize] = useState("regular");
   const [floatChoice, setFloatChoice] = useState("root_beer_float");
   const [secretMix, setSecretMix] = useState("neapolitan");
+
   const toggleTop = id => setToppings(p => ({ ...p, [id]: !p[id] }));
-  const reset = () => { setPatty("2x2"); setCheese("2_cheese"); setBun("regular_bun"); setCook("regular_cook"); setToppings(defaultToppings); setFriesStyle("regular_fries"); setFriesTop("no_fries_topping"); setDrinkType("shake"); setSoda("coke"); setShakeBase("vanilla"); setShakeSize("regular"); setFloatChoice("root_beer_float"); setSecretMix("neapolitan"); };
+  const reset = () => {
+    setPatty("2x2"); setCheese("2_cheese"); setBun("regular_bun"); setCook("regular_cook");
+    setToppings(defaultToppings); setFriesStyle("regular_fries"); setFriesTop("no_fries_topping");
+    setDrinkType("shake"); setSoda("coke"); setShakeBase("vanilla"); setShakeSize("regular");
+    setFloatChoice("root_beer_float"); setSecretMix("neapolitan");
+  };
+
   const topCount = Object.values(toppings).filter(Boolean).length;
   const secretBun = ["protein_style","tomato_wrap","onion_wrap","no_bun"].includes(bun);
   const secretCook = ["mustard_fried","medium_rare"].includes(cook);
   const secretFries = ["animal_fries","ultimate_animal_fries","roadkill_fries"].includes(friesTop);
+  const secretShake = SHAKE_FLAVORS.find(x => x.id === shakeBase)?.secret;
+  const secretSoda = SODAS.find(x => x.id === soda)?.secret;
+
+  const orderProps = { patty, cheese, bun, cook, toppings, friesStyle, friesTop, drinkType, soda, shakeBase, shakeSize, floatChoice, secretMix };
 
   return (
     <div>
       {/* Stats bar */}
-      <div style={{ background: DARK, borderRadius: "10px", display: "flex", justifyContent: "space-around", padding: "14px 8px", marginBottom: "16px" }}>
+      <div style={{ background: DARK, borderRadius: "10px", display: "flex", justifyContent: "space-around", padding: "14px 8px", marginBottom: "10px" }}>
         {[{ n: TOTAL_BURGER.toLocaleString(), l: "Burger Combos" }, { n: TOTAL_FRIES, l: "Fry Combos" }, { n: TOTAL_DRINKS, l: "Drink Combos" }, { n: TOTAL.toLocaleString(), l: "Total Possible" }].map((s, i) => (
           <div key={i} style={{ textAlign: "center", flex: 1 }}>
             <span style={{ fontSize: "15px", fontWeight: "900", color: RED, display: "block" }}>{s.n}</span>
@@ -325,8 +372,12 @@ function BuilderTool() {
         ))}
       </div>
 
+      {/* CHANGE 1: Your Order panel lives here at the top */}
+      <SectionHead emoji="🗣️">Your Order</SectionHead>
+      <OrderPanel {...orderProps} />
+
       {/* Mobile app CTA */}
-      <a href="https://secretmenubuilder.app" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: DARK, borderRadius: "8px", padding: "12px 16px", marginBottom: "10px", textDecoration: "none" }}>
+      <a href="https://secretmenubuilder.app" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: DARK, borderRadius: "8px", padding: "12px 16px", margin: "16px 0 10px", textDecoration: "none" }}>
         <div>
           <div style={{ fontSize: "13px", fontWeight: "800", color: WHITE }}>📱 Better on mobile?</div>
           <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.55)", marginTop: "2px" }}>Use the app — no ads, full screen, drive-thru ready</div>
@@ -363,25 +414,39 @@ function BuilderTool() {
       {/* DRINKS */}
       <SectionHead emoji="🥤">Build Your Drink</SectionHead>
       <Card label="Drink Type"><RadioGrid options={DRINK_TYPE} value={drinkType} onChange={setDrinkType} /></Card>
-      {drinkType === "soda" && <Card label="Choose Soda"><RadioGrid options={SODAS} value={soda} onChange={setSoda} /></Card>}
-      {drinkType === "shake" && <>
-        <Card label="Flavor"><RadioGrid options={SHAKE_FLAVORS} value={shakeBase} onChange={setShakeBase} cols={3} /></Card>
-        <Card label="Size" secret={shakeSize !== "regular"}><RadioGrid options={SHAKE_SIZE} value={shakeSize} onChange={setShakeSize} cols={3} /></Card>
-      </>}
-      {drinkType === "float" && <Card label="Float Style" secret>
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          {FLOAT_OPTIONS.map(o => <button key={o.id} onClick={() => setFloatChoice(o.id)} style={{ padding: "10px 12px", borderRadius: "6px", textAlign: "left", border: floatChoice === o.id ? `2px solid ${RED}` : `2px solid ${LIGHT_GRAY}`, background: floatChoice === o.id ? "#FFF0F0" : WHITE, color: floatChoice === o.id ? RED : DARK, fontWeight: floatChoice === o.id ? "700" : "400", fontSize: "12px", cursor: "pointer" }}>{o.label}</button>)}
-        </div>
-      </Card>}
-      {drinkType === "secret_mix" && <Card label="Secret Mix" secret>
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          {SECRET_MIXES.map(o => <button key={o.id} onClick={() => setSecretMix(o.id)} style={{ padding: "10px 12px", borderRadius: "6px", textAlign: "left", border: secretMix === o.id ? `2px solid ${RED}` : `2px solid ${LIGHT_GRAY}`, background: secretMix === o.id ? "#FFF0F0" : WHITE, color: secretMix === o.id ? RED : DARK, fontWeight: secretMix === o.id ? "700" : "400", fontSize: "12px", cursor: "pointer" }}>{o.label} <span style={{ color: YELLOW, fontSize: "10px" }}>★</span></button>)}
-        </div>
-      </Card>}
 
-      {/* ORDER */}
-      <SectionHead emoji="🗣️">Your Order</SectionHead>
-      <OrderPanel patty={patty} cheese={cheese} bun={bun} cook={cook} toppings={toppings} friesStyle={friesStyle} friesTop={friesTop} drinkType={drinkType} soda={soda} shakeBase={shakeBase} shakeSize={shakeSize} floatChoice={floatChoice} secretMix={secretMix} />
+      {drinkType === "soda" && (
+        <Card label="Choose Your Drink" secret={secretSoda}>
+          <RadioGrid options={SODAS} value={soda} onChange={setSoda} />
+        </Card>
+      )}
+
+      {drinkType === "shake" && (
+        <>
+          <Card label="Shake Flavor" secret={secretShake}>
+            <RadioGrid options={SHAKE_FLAVORS} value={shakeBase} onChange={setShakeBase} cols={2} />
+          </Card>
+          <Card label="Size" secret={shakeSize !== "regular"}>
+            <RadioGrid options={SHAKE_SIZE} value={shakeSize} onChange={setShakeSize} cols={3} />
+          </Card>
+        </>
+      )}
+
+      {drinkType === "float" && (
+        <Card label="Float Style" secret>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            {FLOAT_OPTIONS.map(o => <button key={o.id} onClick={() => setFloatChoice(o.id)} style={{ padding: "10px 12px", borderRadius: "6px", textAlign: "left", border: floatChoice === o.id ? `2px solid ${RED}` : `2px solid ${LIGHT_GRAY}`, background: floatChoice === o.id ? "#FFF0F0" : WHITE, color: floatChoice === o.id ? RED : DARK, fontWeight: floatChoice === o.id ? "700" : "400", fontSize: "12px", cursor: "pointer" }}>{o.label}</button>)}
+          </div>
+        </Card>
+      )}
+
+      {drinkType === "secret_mix" && (
+        <Card label="Secret Mix" secret>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            {SECRET_MIXES.map(o => <button key={o.id} onClick={() => setSecretMix(o.id)} style={{ padding: "10px 12px", borderRadius: "6px", textAlign: "left", border: secretMix === o.id ? `2px solid ${RED}` : `2px solid ${LIGHT_GRAY}`, background: secretMix === o.id ? "#FFF0F0" : WHITE, color: secretMix === o.id ? RED : DARK, fontWeight: secretMix === o.id ? "700" : "400", fontSize: "12px", cursor: "pointer" }}>{o.label} <span style={{ color: YELLOW, fontSize: "10px" }}>★</span></button>)}
+          </div>
+        </Card>
+      )}
 
       <button onClick={reset} style={{ width: "100%", marginTop: "14px", padding: "13px", borderRadius: "8px", background: RED, color: WHITE, fontWeight: "900", fontSize: "14px", letterSpacing: "1px", textTransform: "uppercase", border: "none", cursor: "pointer" }}>Reset & Start Over</button>
 
@@ -394,41 +459,22 @@ function BuilderTool() {
 }
 
 // ─── PAGES ───────────────────────────────────────────────────────────────────
-
 function HomePage() {
   return (
     <div>
-      {/* Top leaderboard ad */}
       <AdSlot label="728x90 Leaderboard — place AdSense unit here" height={90} />
-
-      {/* Hero intro */}
       <div style={{ background: WHITE, borderRadius: "10px", padding: "24px", marginBottom: "16px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
-        <h1 style={{ fontSize: "26px", fontWeight: "900", color: DARK, margin: "0 0 12px", lineHeight: "1.2" }}>
-          The Complete West Coast Burger Secret Menu Builder
-        </h1>
-        <p style={{ fontSize: "14px", color: GRAY, lineHeight: "1.7", margin: "0 0 12px" }}>
-          Everyone knows the classic burger lineup. But regulars know the real menu lives underneath — hundreds of combinations most people never order because they don't know they exist. This tool puts every customization option in one place, walks you through the choices, and hands you the exact words to say at the drive-thru window.
-        </p>
-        <p style={{ fontSize: "14px", color: GRAY, lineHeight: "1.7", margin: 0 }}>
-          From off-menu bun styles like lettuce wraps and whole grilled onion wraps, to secret drink combinations like root beer floats and Neapolitan shakes — if the ingredients exist in that kitchen, it's in the builder below. Pick your options and walk away with a ready-to-order script, plus tips on which items need a little extra explaining.
-        </p>
+        <h1 style={{ fontSize: "26px", fontWeight: "900", color: DARK, margin: "0 0 12px", lineHeight: "1.2" }}>The Complete West Coast Burger Secret Menu Builder</h1>
+        <p style={{ fontSize: "14px", color: GRAY, lineHeight: "1.7", margin: "0 0 12px" }}>Everyone knows the classic burger lineup. But regulars know the real menu lives underneath — hundreds of combinations most people never order because they don't know they exist. This tool puts every customization option in one place, walks you through the choices, and hands you the exact words to say at the drive-thru window.</p>
+        <p style={{ fontSize: "14px", color: GRAY, lineHeight: "1.7", margin: 0 }}>From off-menu bun styles like lettuce wraps and whole grilled onion wraps, to secret drink combinations like root beer floats and Neapolitan shakes — if the ingredients exist in that kitchen, it's in the builder below. Pick your options and walk away with a ready-to-order script, plus tips on which items need a little extra explaining.</p>
       </div>
-
-      {/* Two-column layout: tool + sidebar */}
       <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
-        {/* Main tool column */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <BuilderTool />
-
-          {/* Post-tool content */}
           <div style={{ background: WHITE, borderRadius: "10px", padding: "24px", marginTop: "24px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
             <h2 style={{ fontSize: "20px", fontWeight: "800", color: DARK, margin: "0 0 14px" }}>How the hidden menu actually works</h2>
-            <p style={{ fontSize: "14px", color: GRAY, lineHeight: "1.7", margin: "0 0 12px" }}>
-              The secret menu at this iconic West Coast chain isn't printed anywhere — it's passed down through regulars, employees, and food blogs. Most of the options are simply customizations the kitchen can execute because the ingredients are already there. Workers know the named shortcuts like Animal Style and Protein Style by heart. For the more obscure ones, describe what you want and they'll make it happen.
-            </p>
-            <p style={{ fontSize: "14px", color: GRAY, lineHeight: "1.7", margin: "0 0 12px" }}>
-              The ★ items in the builder above are the off-menu options. Everything else is already on the board. Mix and match freely — the builder calculates over {TOTAL.toLocaleString()} possible combinations from the available ingredients, and the order script adjusts in real time as you select.
-            </p>
+            <p style={{ fontSize: "14px", color: GRAY, lineHeight: "1.7", margin: "0 0 12px" }}>The secret menu at this iconic West Coast chain isn't printed anywhere — it's passed down through regulars, employees, and food blogs. Most of the options are simply customizations the kitchen can execute because the ingredients are already there. Workers know the named shortcuts like Animal Style and Protein Style by heart. For the more obscure ones, describe what you want and they'll make it happen.</p>
+            <p style={{ fontSize: "14px", color: GRAY, lineHeight: "1.7", margin: "0 0 12px" }}>The ★ items in the builder above are the off-menu options. Everything else is already on the board. Mix and match freely — the builder calculates over {TOTAL.toLocaleString()} possible combinations from the available ingredients, and the order script adjusts in real time as you select.</p>
             <h3 style={{ fontSize: "16px", fontWeight: "700", color: DARK, margin: "20px 0 10px" }}>Tips before you pull up to the window</h3>
             <ul style={{ fontSize: "14px", color: GRAY, lineHeight: "1.9", paddingLeft: "20px", margin: 0 }}>
               <li>The whole grilled onion wrap takes about 9 extra minutes — mention you're okay waiting when you order.</li>
@@ -438,12 +484,8 @@ function HomePage() {
               <li>Extra spread packets are free to grab at the counter — great if you want to dip your fries.</li>
             </ul>
           </div>
-
-          {/* Bottom ad */}
           <AdSlot label="728x90 — place AdSense unit here" height={90} />
         </div>
-
-        {/* Sidebar */}
         {ADS_ENABLED && (
           <div className="ad-sidebar-col" style={{ width: "160px", flexShrink: 0 }}>
             <AdSlot label="160x600 Wide Skyscraper — place AdSense unit here" height={600} sidebar />
@@ -619,7 +661,7 @@ function PrivacyPage() {
         <h2 style={{ fontSize: "16px", fontWeight: "700", color: DARK, margin: "20px 0 8px" }}>Third-Party Links</h2>
         <p style={{ fontSize: "13px", color: GRAY, lineHeight: "1.7", margin: "0 0 12px" }}>This site may contain links to other websites. We are not responsible for the privacy practices of those sites.</p>
         <h2 style={{ fontSize: "16px", fontWeight: "700", color: DARK, margin: "20px 0 8px" }}>Contact</h2>
-        <p style={{ fontSize: "13px", color: GRAY, lineHeight: "1.7", margin: 0 }}>If you have questions about this privacy policy, contact us at: privacy@yourdomain.com</p>
+        <p style={{ fontSize: "13px", color: GRAY, lineHeight: "1.7", margin: 0 }}>If you have questions about this privacy policy, contact us at: privacy@secretmenubuilder.com</p>
       </div>
     </div>
   );
@@ -633,25 +675,10 @@ const navItems = [
   { id: "privacy", to: "/privacy", label: "Privacy" },
 ];
 
-function ActiveNavLink({ item, activeId, onClick, style }) {
+function ActiveNavLink({ item, activeId }) {
   const isActive = activeId === item.id;
   return (
-    <Link
-      to={item.to}
-      onClick={onClick}
-      style={{
-        background: isActive ? "rgba(255,255,255,0.2)" : "none",
-        border: "none",
-        color: WHITE,
-        fontWeight: isActive ? "700" : "400",
-        fontSize: "13px",
-        padding: "6px 12px",
-        borderRadius: "6px",
-        cursor: "pointer",
-        textDecoration: "none",
-        ...style,
-      }}
-    >
+    <Link to={item.to} style={{ background: isActive ? "rgba(255,255,255,0.2)" : "none", border: "none", color: WHITE, fontWeight: isActive ? "700" : "400", fontSize: "13px", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", textDecoration: "none" }}>
       {item.label}
     </Link>
   );
@@ -660,32 +687,20 @@ function ActiveNavLink({ item, activeId, onClick, style }) {
 function AppShell({ activeId, children }) {
   return (
     <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", background: CREAM, minHeight: "100vh", color: DARK }}>
-      <style>{`
-        @media (max-width: 700px) {
-          .ad-sidebar-col { display: none !important; }
-        }
-      `}</style>
-      {/* NAV */}
+      <style>{`@media (max-width: 700px) { .ad-sidebar-col { display: none !important; } }`}</style>
       <nav style={{ background: RED, position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
         <div style={{ maxWidth: "860px", margin: "0 auto", padding: "0 16px", height: NAV_HEIGHT, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link to="/" style={{ cursor: "pointer", textDecoration: "none" }}>
             <span style={{ fontWeight: "900", fontSize: "16px", color: WHITE, textTransform: "uppercase", letterSpacing: "0.5px" }}>Secret Menu Builder</span>
           </Link>
-          {/* Desktop nav */}
           <div style={{ display: "flex", gap: "4px" }}>
-            {navItems.map(n => (
-              <ActiveNavLink key={n.id} item={n} activeId={activeId} />
-            ))}
+            {navItems.map(n => <ActiveNavLink key={n.id} item={n} activeId={activeId} />)}
           </div>
         </div>
       </nav>
-
-      {/* CONTENT */}
       <div style={{ maxWidth: "860px", margin: "0 auto", padding: "20px 16px 60px" }}>
         {children}
       </div>
-
-      {/* FOOTER */}
       <footer style={{ background: DARK, color: "rgba(255,255,255,0.5)", padding: "20px 16px", textAlign: "center", fontSize: "12px" }}>
         <div style={{ maxWidth: "860px", margin: "0 auto" }}>
           <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "10px", flexWrap: "wrap" }}>
@@ -694,6 +709,16 @@ function AppShell({ activeId, children }) {
           <p style={{ margin: 0 }}>Independent fan site. Not affiliated with any restaurant chain. Menu availability may vary by location.</p>
         </div>
       </footer>
+    </div>
+  );
+}
+
+function NotFoundPage() {
+  return (
+    <div style={{ background: WHITE, borderRadius: "10px", padding: "28px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", textAlign: "center" }}>
+      <h1 style={{ fontSize: "20px", fontWeight: "800", color: DARK, margin: "0 0 10px" }}>Page not found</h1>
+      <p style={{ fontSize: "14px", color: GRAY, margin: "0 0 16px" }}>That page doesn't exist.</p>
+      <Link to="/" style={{ fontSize: "13px", fontWeight: "700", color: RED }}>← Back to the Builder</Link>
     </div>
   );
 }
@@ -711,15 +736,5 @@ export default function App() {
         <Route path="*" element={<AppShell activeId=""><NotFoundPage /></AppShell>} />
       </Routes>
     </>
-  );
-}
-
-function NotFoundPage() {
-  return (
-    <div style={{ background: WHITE, borderRadius: "10px", padding: "28px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", textAlign: "center" }}>
-      <h1 style={{ fontSize: "20px", fontWeight: "800", color: DARK, margin: "0 0 10px" }}>Page not found</h1>
-      <p style={{ fontSize: "14px", color: GRAY, margin: "0 0 16px" }}>That page doesn't exist.</p>
-      <Link to="/" style={{ fontSize: "13px", fontWeight: "700", color: RED }}>← Back to the Builder</Link>
-    </div>
   );
 }
